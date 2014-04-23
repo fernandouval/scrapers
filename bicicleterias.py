@@ -3,6 +3,8 @@ from datetime import date, datetime, time
 import urllib2, sys
 import re, lxml.html, lxml.etree, StringIO, datetime, csv
 
+from selenium import webdriver
+
 git = 'https://github.com/fernandouval/scrapers/blob/master/bicicleterias.py'
 
 def a1122():
@@ -64,4 +66,57 @@ def a1122():
 				csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 				csvwriter.writerow(data)
 
-a1122()
+
+def planetauruguay():
+	gitdata = 'https://github.com/fernandouval/scrapers/tree/master/data/1122.csv'
+	url = 'http://www.planetauruguay.com/uruguay/bicicletas'
+	req = urllib2.Request(url)
+	response = urllib2.urlopen(req)
+	body = response.read()
+	doc = lxml.html.document_fromstring(body)
+	divs = doc.cssselect('.listado')[0].cssselect('ul')[0].cssselect('li')
+	for div in divs:
+		anuncio = div.cssselect('h2')[0].cssselect('a')[0]
+		title = anuncio.text_content()
+		print title
+		anuncioUrl = anuncio.attrib['href']
+		print anuncioUrl
+		driver = webdriver.Firefox()
+		driver.get(anuncioUrl)
+		driver.find_element_by_id('linkvertelefono').click()
+		tel = driver.find_element_by_id('telefonocontainer').text
+		urlDir = driver.find_element_by_id('verdireccionmapa').find_element_by_tag_name('a').get_attribute('href')
+		#driver.get_screenshot_as_file('screen.png')
+		driver.close()
+		sys.exit()
+		an_req = urllib2.Request(anuncioUrl)
+		an_response = urllib2.urlopen(an_req)
+		an_body = an_response.read()
+		an_doc = lxml.html.document_fromstring(an_body)
+		vcard = an_doc.cssselect('.vcard')[0]
+		addr = vcard.cssselect('.street-address')[0].text_content()+', '+ vcard.cssselect('.region')[0].text_content()
+		tel = vcard.cssselect('.tel')[0].text_content().replace("Tel.:", "").strip()
+		cel = vcard.cssselect('.cel')[0].text_content().replace("Cel.:", "").strip()
+		phone = tel+'-'+cel
+		web = vcard.cssselect('.webpage a')[0].attrib['href']
+		if (web.strip() == 'http://'):
+			web = ''
+		extra = vcard.cssselect('.hours')[0].text_content()+"\n"+vcard.cssselect('.additionaltext')[0].text_content()
+		lat = vcard.cssselect('.latitude')[0][0].attrib['title']
+		lon = vcard.cssselect('.longitude')[0][0].attrib['title']
+		geo = lat+","+lon
+		data = [
+			title.strip().encode('utf8', 'replace'),
+			addr.strip().encode('utf8', 'replace'),
+			geo, 
+			web, 
+			phone,
+			anuncioUrl,
+			git,
+			gitdata
+		];
+		with open('data/1122.csv', 'ab') as csvfile:
+			csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+			csvwriter.writerow(data)
+
+planetauruguay()

@@ -47,11 +47,15 @@ def comerciosdemontevideo():
 				csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 				csvwriter.writerow(data)
 
-def paginasamarillas():
+def paginasamarillas(rubro):
+	if (rubro == 'bicis'):
+		rubroUrl = 'bicicletas_-_reparacion_y_repuestos/56400'
+	else:
+		rubroUrl = 'automotores_-_estacionamientos/177400'
 	page = 1
 	lastTitle = ''
 	while page:
-		url = 'http://paginasamarillas.com.uy/voltprod/sitio/rubro/automotores_-_estacionamientos/177400/zona/Montevideo/pagina-'+str(page)
+		url = 'http://paginasamarillas.com.uy/voltprod/sitio/rubro/'+rubroUrl+'/zona/Montevideo/pagina-'+str(page)
 		hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
@@ -91,7 +95,7 @@ def paginasamarillas():
 				phone.replace("Tel:", "").strip(),
 				url
 			];
-			with open('data/paginasamarillas.csv', 'ab') as csvfile:
+			with open('data/paginasamarillas-'+rubro+'.csv', 'ab') as csvfile:
 				csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 				csvwriter.writerow(data)
 
@@ -140,4 +144,5 @@ def amerpages():
 			with open('data/amerpages.csv', 'ab') as csvfile:
 				csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 				csvwriter.writerow(data)
-amerpages()
+
+paginasamarillas('bicis')
